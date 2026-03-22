@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: symptom-assistant
+  config:
+    import: "optional:file:.env[.properties]"
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  flyway:
+    url: ${POSTGRES_URL}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    schemas: public
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  ollama:
+    url: ${OLLAMA_URL}
+    default-model: ${OLLAMA_MODEL}
+    default-stream: false
+    apiKey: ${OLLAMA_API_KEY}
+  resilience4j:
+    retry:
+      instances:
+        symptomAnalyzerRetry:
+          max-attempts: 3
+          wait-duration: 200ms
+          retry-exceptions:
+            - com.fasterxml.jackson.core.JsonProcessingException
+          ignore-exceptions:
+            - java.lang.IllegalArgumentException
+  jwt:
+    jwtSecret: ${JWT_SECRET}
+    accessExpiration: ${ACCESS_EXP}
+    refreshExpiration: ${REFRESH_EXP}
+  security:
+    clientUrl: http://localhost:3000

@@ -1,0 +1,2 @@
+ALTER TABLE chats DROP COLUMN context;
+ALTER TABLE chats ADD COLUMN context TEXT;
