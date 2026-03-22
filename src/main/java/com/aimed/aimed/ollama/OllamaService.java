@@ -2,7 +2,6 @@ package com.aimed.aimed.ollama;
 
 import com.aimed.aimed.ollama.dto.*;
 import com.aimed.aimed.ollama.enums.OllamaChatRole;
-import com.symptomassistant.symptom_assistant.ollama.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
