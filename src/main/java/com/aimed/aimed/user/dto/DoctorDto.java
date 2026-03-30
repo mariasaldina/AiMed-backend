@@ -12,4 +12,4 @@ public record DoctorDto(
         LocalDate licenseIssueDate,
         LocalDate licenseExpiryDate,
         List<Long> specializationIds
-) {}
+) implements UserProfileDto {}

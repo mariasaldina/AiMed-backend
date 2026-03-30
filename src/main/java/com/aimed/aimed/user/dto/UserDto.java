@@ -5,5 +5,6 @@ import com.aimed.aimed.user.enums.UserRole;
 public record UserDto(
         Long id,
         String username,
-        UserRole role
+        UserRole role,
+        UserProfileDto profile
 ) {}

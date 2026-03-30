@@ -13,4 +13,4 @@ public record PatientDto(
 
         Gender gender,
         String medicalHistory
-) {}
+) implements UserProfileDto {}

@@ -2,16 +2,16 @@ package com.aimed.aimed.user;
 
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.specialization.SpecializationRepository;
-import com.aimed.aimed.user.dto.ContactDto;
-import com.aimed.aimed.user.dto.DoctorDto;
-import com.aimed.aimed.user.dto.PatientDto;
-import com.aimed.aimed.user.dto.UserDto;
+import com.aimed.aimed.user.dto.*;
 import com.aimed.aimed.user.entity.*;
 import com.aimed.aimed.user.enums.UserRole;
+import com.aimed.aimed.user.mapper.DoctorMapper;
+import com.aimed.aimed.user.mapper.PatientMapper;
 import com.aimed.aimed.user.repository.DoctorProfileRepository;
 import com.aimed.aimed.user.repository.PatientProfileRepository;
 import com.aimed.aimed.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,23 +22,15 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final PatientProfileRepository patientRepository;
     private final DoctorProfileRepository doctorRepository;
     private final SpecializationRepository specializationRepository;
 
-    public UserService(
-            UserRepository userRepository,
-            PatientProfileRepository patientRepository,
-            DoctorProfileRepository doctorRepository,
-            SpecializationRepository specializationRepository
-    ) {
-        this.userRepository = userRepository;
-        this.patientRepository = patientRepository;
-        this.doctorRepository = doctorRepository;
-        this.specializationRepository = specializationRepository;
-    }
+    private final PatientMapper patientMapper;
+    private final DoctorMapper doctorMapper;
 
     @Transactional
     public User create(String username, String password, UserRole role) {
@@ -64,7 +56,14 @@ public class UserService {
                 .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
 
-        return new UserDto(user.getId(), user.getUsername(), user.getRole());
+        UserProfileDto profile =
+                switch (user.getRole()) {
+                    case PATIENT -> patientMapper.toDto(user.getPatientProfile());
+                    case DOCTOR -> doctorMapper.toDto(user.getDoctorProfile());
+                    default -> null;
+                };
+
+        return new UserDto(user.getId(), user.getUsername(), user.getRole(), profile);
     }
 
     @Transactional
