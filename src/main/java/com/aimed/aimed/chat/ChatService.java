@@ -3,20 +3,23 @@ package com.aimed.aimed.chat;
 import com.aimed.aimed.chat.dto.ChatDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
+import com.aimed.aimed.contact.ContactService;
+import com.aimed.aimed.contact.ContactsDto;
 import com.aimed.aimed.message.entity.*;
 import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.message.MessageRepository;
 import com.aimed.aimed.specialization.SpecializationRepository;
+import com.aimed.aimed.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.aimed.aimed.chat_prompt_manager.ChatPromptManager;
 import com.aimed.aimed.message.dto.AssistantMessageDto;
 import com.aimed.aimed.message.dto.DoctorSuggestionDto;
-import com.aimed.aimed.user.dto.ContactResponseDto;
 import com.aimed.aimed.user.entity.DoctorProfile;
 import com.aimed.aimed.user.repository.DoctorProfileRepository;
 import com.aimed.aimed.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,6 +31,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ChatService {
     private final ChatRepository chatRepository;
@@ -37,20 +41,7 @@ public class ChatService {
     private final DoctorProfileRepository doctorProfileRepository;
     private final UserRepository userRepository;
 
-    public ChatService(
-            ChatRepository chatRepository,
-            MessageRepository messageRepository,
-            SpecializationRepository specializationRepository,
-            ChatPromptManager chatPromptManager,
-            DoctorProfileRepository doctorProfileRepository,
-            UserRepository userRepository) {
-        this.chatRepository = chatRepository;
-        this.messageRepository = messageRepository;
-        this.specializationRepository = specializationRepository;
-        this.chatPromptManager = chatPromptManager;
-        this.doctorProfileRepository = doctorProfileRepository;
-        this.userRepository = userRepository;
-    }
+    private final ContactService contactService;
 
     @Transactional
     public MessageResponseDto processMessage(Long chatId, String content) throws JsonProcessingException {
@@ -153,25 +144,11 @@ public class ChatService {
     }
 
     @Transactional
-    public Message getDoctorsContacts(Long chatId, Long doctorId) {
-        List<ContactResponseDto> content = userRepository.findById(doctorId).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"))
-                .getContacts()
-                .stream().map(c -> new ContactResponseDto(
-                        c.getId(),
-                        c.getType(),
-                        c.getValue(),
-                        c.getIsPrimary()
-                ))
-                .toList();
+    public void getDoctorsContacts(Long chatId, Long doctorId) {
+        User doctor = userRepository.findById(doctorId).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"));
 
-        Message message = new Message(chatId, MessageType.CONTACTS);
-        message.setContactsPayload(new ContactsMessagePayload(
-                message,
-                doctorId,
-                content
-        ));
-
-       return messageRepository.save(message);
+        ContactsDto content = this.contactService.getContacts(doctorId);
+        // отправка уведа
     }
 }

@@ -1,5 +1,7 @@
 package com.aimed.aimed.user;
 
+import com.aimed.aimed.contact.ContactService;
+import com.aimed.aimed.contact.ContactsDto;
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.specialization.SpecializationRepository;
 import com.aimed.aimed.user.dto.*;
@@ -31,6 +33,7 @@ public class UserService {
 
     private final PatientMapper patientMapper;
     private final DoctorMapper doctorMapper;
+    private final ContactService contactService;
 
     @Transactional
     public User create(String username, String password, UserRole role) {
@@ -51,7 +54,7 @@ public class UserService {
         return this.userRepository.findByUsername(username);
     }
 
-    public UserDto findById(Long id) {
+    public UserResponseDto findById(Long id) {
         User user = this.userRepository
                 .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
@@ -63,11 +66,20 @@ public class UserService {
                     default -> null;
                 };
 
-        return new UserDto(user.getId(), user.getUsername(), user.getFullName(), user.getRole(), profile);
+        ContactsDto contacts = this.contactService.parseToDto(user.getContacts());
+
+        return new UserResponseDto(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                user.getRole(),
+                profile,
+                contactService.parseToDto(user.getContacts())
+        );
     }
 
     @Transactional
-    public UserDto fillInPatientQuestionnaire(Long userId, PatientDto patientDto) {
+    public UserResponseDto fillInPatientQuestionnaire(Long userId, PatientDto patientDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.PATIENT) {
@@ -82,17 +94,18 @@ public class UserService {
         patientProfile.setGender(patientDto.gender());
         patientProfile.setMedicalHistory(patientDto.medicalHistory());
 
-        return new UserDto(
+        return new UserResponseDto(
                 user.getId(),
                 user.getUsername(),
                 user.getFullName(),
                 user.getRole(),
-                patientMapper.toDto(user.getPatientProfile())
+                patientMapper.toDto(user.getPatientProfile()),
+                contactService.parseToDto(user.getContacts())
         );
     }
 
     @Transactional
-    public UserDto fillInDoctorQuestionnaire(Long userId, DoctorDto doctorDto) {
+    public UserResponseDto fillInDoctorQuestionnaire(Long userId, DoctorDto doctorDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.DOCTOR) {
@@ -114,26 +127,13 @@ public class UserService {
                 .findAllById(doctorDto.specializationIds()));
         doctorProfile.setSpecializations(specs);
 
-        return new UserDto(
+        return new UserResponseDto(
                 user.getId(),
                 user.getUsername(),
                 user.getFullName(),
                 user.getRole(),
-                doctorMapper.toDto(user.getDoctorProfile())
+                doctorMapper.toDto(user.getDoctorProfile()),
+                contactService.parseToDto(user.getContacts())
         );
-    }
-
-    @Transactional
-    public void updateContacts(Long userId, List<ContactDto> contacts) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
-
-        List<UserContact> newContacts = contacts.stream()
-                .map(c ->
-                        new UserContact(user, c.type(), c.value(), c.isPrimary()))
-                .toList();
-
-        user.getContacts().clear();
-        user.getContacts().addAll(newContacts);
     }
 }

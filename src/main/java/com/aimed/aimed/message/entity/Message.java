@@ -49,7 +49,4 @@ public class Message {
 
     @OneToOne(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private DoctorSuggestionsMessagePayload doctorSuggestionsPayload;
-
-    @OneToOne(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private ContactsMessagePayload contactsPayload;
 }

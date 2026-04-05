@@ -27,7 +27,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @EntityGraph(attributePaths = {
             "userPayload",
             "assistantPayload",
-            "contactsPayload",
             "doctorSuggestionsPayload"
     })
     @Query("SELECT m FROM Message m WHERE m.chatId = :chatId")

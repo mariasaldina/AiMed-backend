@@ -1,9 +1,9 @@
 package com.aimed.aimed.user;
 
-import com.aimed.aimed.user.dto.ContactDto;
 import com.aimed.aimed.user.dto.DoctorDto;
 import com.aimed.aimed.user.dto.PatientDto;
 import com.aimed.aimed.user.dto.UserDto;
+import com.aimed.aimed.user.dto.UserResponseDto;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +20,13 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public UserDto getUser(@AuthenticationPrincipal Jwt jwt) {
+    public UserResponseDto getUser(@AuthenticationPrincipal Jwt jwt) {
         Long userId = Long.valueOf(jwt.getSubject());
         return this.userService.findById(userId);
     }
 
     @PutMapping("/patient-questionnaire")
-    public UserDto fillInPatientQuestionnaire(
+    public UserResponseDto fillInPatientQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody() PatientDto reqBody
     ) {
@@ -35,20 +35,11 @@ public class UserController {
     }
 
     @PutMapping("/doctor-questionnaire")
-    public UserDto fillInDoctorQuestionnaire(
+    public UserResponseDto fillInDoctorQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody() DoctorDto reqBody
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
         return this.userService.fillInDoctorQuestionnaire(userId, reqBody);
-    }
-
-    @PutMapping("/contacts")
-    public void updateContacts(
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestBody() List<ContactDto> contacts
-    ) {
-        Long userId = Long.valueOf(jwt.getSubject());
-        this.userService.updateContacts(userId, contacts);
     }
 }

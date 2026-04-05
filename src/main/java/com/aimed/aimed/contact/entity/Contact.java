@@ -1,5 +1,7 @@
-package com.aimed.aimed.user.entity;
+package com.aimed.aimed.contact.entity;
 
+import com.aimed.aimed.contact.ContactsDto;
+import com.aimed.aimed.user.entity.User;
 import com.aimed.aimed.user.enums.ContactType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -15,18 +17,16 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserContact {
+public class Contact {
 
-    public UserContact(
+    public Contact(
             User user,
             ContactType type,
-            String value,
-            Boolean isPrimary
+            String value
     ) {
         this.user = user;
         this.type = type;
         this.value = value;
-        this.isPrimary = isPrimary;
     }
 
     @Id

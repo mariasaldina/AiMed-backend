@@ -91,11 +91,11 @@ public class ChatController {
     }
 
     @PostMapping("/{chatId}/doctors/{doctorId}/contacts")
-    public Message getDoctorsContacts(
+    public void getDoctorsContacts(
             @PathVariable Long chatId,
             @PathVariable Long doctorId
     ) {
-        return this.chatService.getDoctorsContacts(chatId, doctorId);
+        this.chatService.getDoctorsContacts(chatId, doctorId);
     }
 
 }

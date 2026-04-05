@@ -1,5 +1,6 @@
 package com.aimed.aimed.user.entity;
 
+import com.aimed.aimed.contact.entity.Contact;
 import com.aimed.aimed.user.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -47,5 +48,5 @@ public class User {
     private DoctorProfile doctorProfile;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<UserContact> contacts;
+    private List<Contact> contacts;
 }

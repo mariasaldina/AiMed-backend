@@ -44,7 +44,7 @@ public class AuthController {
         setCookies(res, "refresh", tokens.refresh(), true);
         setCookies(res, "csrf", tokens.csrf(), false);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/refresh")
