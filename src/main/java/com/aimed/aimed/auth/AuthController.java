@@ -2,8 +2,8 @@ package com.aimed.aimed.auth;
 
 import com.aimed.aimed.auth.dto.LoginDto;
 import com.aimed.aimed.auth.dto.SignUpDto;
-import com.aimed.aimed.auth.dto.SignUpResponseDto;
 import com.aimed.aimed.auth.dto.Tokens;
+import com.aimed.aimed.user.dto.UserDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +37,7 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignUpDto req, HttpServletResponse res) {
-        SignUpResponseDto user = this.authService.createUser(req.username(), req.password(), req.role());
+        UserDto user = this.authService.createUser(req.username(), req.password(), req.role());
 
         Tokens tokens = this.authService.generateTokens(user.id(), user.role().toString());
         setCookies(res, "access", tokens.access(), true);

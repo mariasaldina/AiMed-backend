@@ -63,11 +63,11 @@ public class UserService {
                     default -> null;
                 };
 
-        return new UserDto(user.getId(), user.getUsername(), user.getRole(), profile);
+        return new UserDto(user.getId(), user.getUsername(), user.getFullName(), user.getRole(), profile);
     }
 
     @Transactional
-    public void fillInPatientQuestionnaire(Long userId, PatientDto patientDto) {
+    public UserDto fillInPatientQuestionnaire(Long userId, PatientDto patientDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.PATIENT) {
@@ -81,10 +81,18 @@ public class UserService {
         patientProfile.setBirthdate(patientDto.birthdate());
         patientProfile.setGender(patientDto.gender());
         patientProfile.setMedicalHistory(patientDto.medicalHistory());
+
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                user.getRole(),
+                patientMapper.toDto(user.getPatientProfile())
+        );
     }
 
     @Transactional
-    public void fillInDoctorQuestionnaire(Long userId, DoctorDto doctorDto) {
+    public UserDto fillInDoctorQuestionnaire(Long userId, DoctorDto doctorDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.DOCTOR) {
@@ -105,6 +113,14 @@ public class UserService {
         Set<Specialization> specs = new HashSet<>(specializationRepository
                 .findAllById(doctorDto.specializationIds()));
         doctorProfile.setSpecializations(specs);
+
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getFullName(),
+                user.getRole(),
+                doctorMapper.toDto(user.getDoctorProfile())
+        );
     }
 
     @Transactional

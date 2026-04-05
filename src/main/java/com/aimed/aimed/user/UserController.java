@@ -26,21 +26,21 @@ public class UserController {
     }
 
     @PutMapping("/patient-questionnaire")
-    public void fillInPatientQuestionnaire(
+    public UserDto fillInPatientQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody() PatientDto reqBody
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
-        this.userService.fillInPatientQuestionnaire(userId, reqBody);
+        return this.userService.fillInPatientQuestionnaire(userId, reqBody);
     }
 
     @PutMapping("/doctor-questionnaire")
-    public void fillInDoctorQuestionnaire(
+    public UserDto fillInDoctorQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody() DoctorDto reqBody
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
-        this.userService.fillInDoctorQuestionnaire(userId, reqBody);
+        return this.userService.fillInDoctorQuestionnaire(userId, reqBody);
     }
 
     @PutMapping("/contacts")

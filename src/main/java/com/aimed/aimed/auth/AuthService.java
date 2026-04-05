@@ -1,15 +1,19 @@
 package com.aimed.aimed.auth;
 
-import com.aimed.aimed.auth.dto.SignUpResponseDto;
 import com.aimed.aimed.auth.dto.Tokens;
 import com.aimed.aimed.auth.jwt.JwtService;
 import com.aimed.aimed.auth.refresh.RefreshToken;
 import com.aimed.aimed.auth.refresh.RefreshTokenRepository;
 import com.aimed.aimed.auth.user.UserDetailsImpl;
 import com.aimed.aimed.user.UserService;
+import com.aimed.aimed.user.dto.UserDto;
+import com.aimed.aimed.user.dto.UserProfileDto;
 import com.aimed.aimed.user.entity.User;
 import com.aimed.aimed.user.enums.UserRole;
+import com.aimed.aimed.user.mapper.DoctorMapper;
+import com.aimed.aimed.user.mapper.PatientMapper;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class AuthService {
     private final AuthenticationManager authenticationManager;
@@ -34,21 +39,8 @@ public class AuthService {
     private final RefreshTokenRepository refreshRepo;
     private final JwtDecoder jwtDecoder;
 
-    public AuthService(
-            AuthenticationManager authenticationManager,
-            JwtService jwtService,
-            UserService userService,
-            PasswordEncoder passwordEncoder,
-            RefreshTokenRepository refreshRepo,
-            JwtDecoder jwtDecoder
-    ) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-        this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
-        this.refreshRepo = refreshRepo;
-        this.jwtDecoder = jwtDecoder;
-    }
+    private final PatientMapper patientMapper;
+    private final DoctorMapper doctorMapper;
 
     public Tokens generateTokens(Long userId, String role) {
         String accessToken = jwtService.generateAccessToken(userId, role);
@@ -69,7 +61,7 @@ public class AuthService {
         return generateTokens(user.getId(), role);
     }
 
-    public SignUpResponseDto createUser(String username, String password, UserRole role) {
+    public UserDto createUser(String username, String password, UserRole role) {
         if (this.userService.findByUsername(username).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
         }
@@ -77,7 +69,14 @@ public class AuthService {
         String hashed = passwordEncoder.encode(password);
         User user = this.userService.create(username, hashed, role);
 
-        return new SignUpResponseDto(user.getId(), user.getUsername(), user.getRole());
+        UserProfileDto profile =
+                switch (user.getRole()) {
+                    case PATIENT -> patientMapper.toDto(user.getPatientProfile());
+                    case DOCTOR -> doctorMapper.toDto(user.getDoctorProfile());
+                    default -> null;
+                };
+
+        return new UserDto(user.getId(), user.getUsername(), user.getFullName(), user.getRole(), profile);
     }
 
     public Tokens refresh(String token) {
