@@ -2,6 +2,7 @@ package com.aimed.aimed.chat;
 
 import com.aimed.aimed.chat.dto.ChatDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
+import com.aimed.aimed.message.dto.MessageDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.aimed.aimed.message.entity.Message;
 import org.springframework.http.HttpStatus;
@@ -65,7 +66,7 @@ public class ChatController {
     }
 
     public record ChatMessagesDto (
-            List<Message> messages
+            List<MessageDto> messages
     ) {}
 
     @GetMapping("/{chatId}")
@@ -89,13 +90,4 @@ public class ChatController {
             return ResponseEntity.status(err.getStatus()).body(err);
         }
     }
-
-    @PostMapping("/{chatId}/doctors/{doctorId}/contacts")
-    public void getDoctorsContacts(
-            @PathVariable Long chatId,
-            @PathVariable Long doctorId
-    ) {
-        this.chatService.getDoctorsContacts(chatId, doctorId);
-    }
-
 }

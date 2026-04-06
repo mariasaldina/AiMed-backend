@@ -1,6 +1,5 @@
 package com.aimed.aimed.message.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.aimed.aimed.message.dto.DoctorSuggestionDto;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -27,13 +26,11 @@ public class DoctorSuggestionsMessagePayload {
     }
 
     @Id
-    @JsonIgnore
     private Long messageId;
 
     @MapsId
     @OneToOne
     @JoinColumn(name = "message_id")
-    @JsonIgnore
     private Message message;
 
     @Column(columnDefinition = "jsonb")

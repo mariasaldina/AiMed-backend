@@ -4,5 +4,5 @@ public enum MessageType {
     USER,
     ASSISTANT,
     DOCTOR_SUGGESTIONS,
-    CONTACTS
+    INVITATION
 }

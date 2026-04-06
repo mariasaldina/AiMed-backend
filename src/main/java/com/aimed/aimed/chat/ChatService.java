@@ -5,6 +5,7 @@ import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.contact.ContactsDto;
+import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.entity.*;
 import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.specialization.Specialization;
@@ -13,8 +14,6 @@ import com.aimed.aimed.specialization.SpecializationRepository;
 import com.aimed.aimed.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.aimed.aimed.chat_prompt_manager.ChatPromptManager;
-import com.aimed.aimed.message.dto.AssistantMessageDto;
-import com.aimed.aimed.message.dto.DoctorSuggestionDto;
 import com.aimed.aimed.user.entity.DoctorProfile;
 import com.aimed.aimed.user.repository.DoctorProfileRepository;
 import com.aimed.aimed.user.repository.UserRepository;
@@ -36,12 +35,8 @@ import java.util.List;
 public class ChatService {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
-    private final SpecializationRepository specializationRepository;
     private final ChatPromptManager chatPromptManager;
     private final DoctorProfileRepository doctorProfileRepository;
-    private final UserRepository userRepository;
-
-    private final ContactService contactService;
 
     @Transactional
     public MessageResponseDto processMessage(Long chatId, String content) throws JsonProcessingException {
@@ -77,7 +72,7 @@ public class ChatService {
         String newContext = chatPromptManager.updateContext(chat.getContext(), messages);
         chatRepository.updateContextById(chatId, newContext);
 
-        return new MessageResponseDto(savedUserMessage, savedAssistantMessage);
+        return new MessageResponseDto(savedUserMessage.toDto(), savedAssistantMessage.toDto());
     }
 
     @Transactional
@@ -86,12 +81,15 @@ public class ChatService {
         return new ChatDto(chat.getId(), chat.getTitle());
     }
 
-    public List<Message> getMessages(Long chatId) {
+    public List<MessageDto> getMessages(Long chatId) {
         this.chatRepository.findById(chatId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found")
         );
         Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").ascending());
-        return this.messageRepository.findAllByChatId(chatId, pageable);
+
+        return this.messageRepository.findAllByChatId(chatId, pageable).stream()
+                .map(Message::toDto)
+                .toList();
     }
 
     public List<ChatDto> getChats(Long userId) {
@@ -108,7 +106,7 @@ public class ChatService {
     }
 
     @Transactional
-    public Message findDoctors(Long chatId) throws JsonProcessingException {
+    public MessageDto findDoctors(Long chatId) throws JsonProcessingException {
         Chat chat = this.chatRepository.findById(chatId)
                 .orElseThrow(() ->  new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found"));
 
@@ -140,15 +138,6 @@ public class ChatService {
         Message message = new Message(chatId, MessageType.DOCTOR_SUGGESTIONS);
         message.setDoctorSuggestionsPayload(new DoctorSuggestionsMessagePayload(message, sortedDoctors));
 
-        return messageRepository.save(message);
-    }
-
-    @Transactional
-    public void getDoctorsContacts(Long chatId, Long doctorId) {
-        User doctor = userRepository.findById(doctorId).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"));
-
-        ContactsDto content = this.contactService.getContacts(doctorId);
-        // отправка уведа
+        return messageRepository.save(message).toDto();
     }
 }

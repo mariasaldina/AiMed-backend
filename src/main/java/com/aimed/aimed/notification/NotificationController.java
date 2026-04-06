@@ -1,5 +1,6 @@
 package com.aimed.aimed.notification;
 
+import com.aimed.aimed.message.dto.MessageDto;
 import com.aimed.aimed.notification.dto.InvitationDto;
 import com.aimed.aimed.notification.enums.InvitationStatus;
 import com.aimed.aimed.user.enums.UserRole;
@@ -18,9 +19,9 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @PostMapping("/invite")
-    public void inviteDoctor(@AuthenticationPrincipal Jwt jwt, @RequestBody InvitationDto dto) {
+    public MessageDto inviteDoctor(@AuthenticationPrincipal Jwt jwt, @RequestBody InvitationDto dto) {
         Long patientId = Long.valueOf(jwt.getSubject());
-        this.notificationService.inviteDoctor(patientId, dto);
+        return this.notificationService.inviteDoctor(patientId, dto);
     }
 
     public record NotifyPatientDto(

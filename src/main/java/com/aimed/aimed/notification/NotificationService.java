@@ -1,6 +1,11 @@
 package com.aimed.aimed.notification;
 
 import com.aimed.aimed.contact.ContactService;
+import com.aimed.aimed.message.MessageRepository;
+import com.aimed.aimed.message.dto.MessageDto;
+import com.aimed.aimed.message.entity.Message;
+import com.aimed.aimed.message.enums.MessageType;
+import com.aimed.aimed.notification.dto.DoctorDataDto;
 import com.aimed.aimed.notification.dto.DoctorNotificationDto;
 import com.aimed.aimed.notification.dto.InvitationDto;
 import com.aimed.aimed.notification.dto.PatientNotificationDto;
@@ -30,18 +35,34 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final ContactService contactService;
+    private final MessageRepository messageRepository;
 
     @Transactional
-    public void inviteDoctor(Long patientId, InvitationDto invitationDto) {
+    public MessageDto inviteDoctor(Long patientId, InvitationDto invitationDto) {
         User doctor = this.userRepository.findById(invitationDto.doctorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"));
 
-        Invitation invitation = this.invitationRepository.save(
-                new Invitation(patientId, doctor, invitationDto.content())
+        Message invitationMessage = new Message(invitationDto.chatId(), MessageType.INVITATION);
+        invitationMessage.setInvitationPayload(
+                new Invitation(
+                        patientId,
+                        doctor,
+                        invitationDto.content(),
+                        new DoctorDataDto(doctor.getFullName()),
+                        invitationMessage
+                )
         );
+        Message savedInvitationMessage = this.messageRepository.save(invitationMessage);
+
         this.notificationRepository.save(
-                new Notification(invitationDto.doctorId(), NotificationType.DOCTOR, invitation)
+                new Notification(
+                        invitationDto.doctorId(),
+                        NotificationType.DOCTOR,
+                        savedInvitationMessage.getInvitationPayload()
+                )
         );
+
+        return savedInvitationMessage.toDto();
     }
 
     @Transactional

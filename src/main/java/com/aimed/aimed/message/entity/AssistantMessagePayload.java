@@ -1,6 +1,5 @@
 package com.aimed.aimed.message.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.aimed.aimed.message.enums.UrgencyStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,13 +30,11 @@ public class AssistantMessagePayload {
     }
 
     @Id
-    @JsonIgnore
     private Long messageId;
 
     @MapsId
     @OneToOne
     @JoinColumn(name = "message_id")
-    @JsonIgnore
     private Message message;
 
     private List<String> possibleCauses;

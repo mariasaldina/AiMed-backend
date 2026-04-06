@@ -1,6 +1,5 @@
 package com.aimed.aimed.message.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,13 +16,11 @@ public class UserMessagePayload {
     }
 
     @Id
-    @JsonIgnore
     private Long messageId;
 
     @MapsId
     @OneToOne
     @JoinColumn(name = "message_id")
-    @JsonIgnore
     private Message message;
 
     private String content;

@@ -1,0 +1,1 @@
+ALTER TABLE invitations ADD COLUMN doctor_data JSONB NOT NULL DEFAULT '{}'::jsonb;
