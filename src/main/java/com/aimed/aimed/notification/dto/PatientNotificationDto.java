@@ -10,6 +10,7 @@ public record PatientNotificationDto(
         Long id,
         NotificationType type,
         OffsetDateTime createdAt,
+        String content,
         InvitationStatus invitationStatus,
-        ContactsDto contacts
+        DoctorViewDto doctor
 ) { }

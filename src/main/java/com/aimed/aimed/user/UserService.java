@@ -2,6 +2,7 @@ package com.aimed.aimed.user;
 
 import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.contact.ContactsDto;
+import com.aimed.aimed.contact.mapper.ContactMapper;
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.specialization.SpecializationRepository;
 import com.aimed.aimed.user.dto.*;
@@ -33,7 +34,7 @@ public class UserService {
 
     private final PatientMapper patientMapper;
     private final DoctorMapper doctorMapper;
-    private final ContactService contactService;
+    private final ContactMapper contactMapper;
 
     @Transactional
     public User create(String username, String password, UserRole role) {
@@ -66,7 +67,7 @@ public class UserService {
                     default -> null;
                 };
 
-        ContactsDto contacts = this.contactService.parseToDto(user.getContacts());
+        ContactsDto contacts = this.contactMapper.toDto(user.getContacts());
 
         return new UserResponseDto(
                 user.getId(),
@@ -74,7 +75,7 @@ public class UserService {
                 user.getFullName(),
                 user.getRole(),
                 profile,
-                contactService.parseToDto(user.getContacts())
+                contactMapper.toDto(user.getContacts())
         );
     }
 
@@ -100,7 +101,7 @@ public class UserService {
                 user.getFullName(),
                 user.getRole(),
                 patientMapper.toDto(user.getPatientProfile()),
-                contactService.parseToDto(user.getContacts())
+                contactMapper.toDto(user.getContacts())
         );
     }
 
@@ -133,7 +134,7 @@ public class UserService {
                 user.getFullName(),
                 user.getRole(),
                 doctorMapper.toDto(user.getDoctorProfile()),
-                contactService.parseToDto(user.getContacts())
+                contactMapper.toDto(user.getContacts())
         );
     }
 }

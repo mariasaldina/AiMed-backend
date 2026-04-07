@@ -20,3 +20,11 @@ CREATE TABLE notifications (
     is_read BOOLEAN,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+ALTER TYPE MESSAGE_TYPE ADD VALUE 'INVITATION';
+
+CREATE TABLE invitation_message_payload (
+    message_id INT NOT NULL REFERENCES messages(id) PRIMARY KEY,
+    content TEXT,
+    doctor_data JSONB NOT NULL DEFAULT '{}'::jsonb
+);

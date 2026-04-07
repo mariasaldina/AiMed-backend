@@ -1,6 +1,7 @@
 package com.aimed.aimed.contact;
 
 import com.aimed.aimed.contact.entity.Contact;
+import com.aimed.aimed.contact.mapper.ContactMapper;
 import com.aimed.aimed.user.entity.User;
 import com.aimed.aimed.user.enums.ContactType;
 import com.aimed.aimed.user.repository.UserRepository;
@@ -19,27 +20,10 @@ public class ContactService {
 
     private final ContactRepository contactRepository;
     private final UserRepository userRepository;
-
-    public ContactsDto parseToDto(List<Contact> contacts) {
-        ContactsDto contactDto = new ContactsDto();
-
-        contacts
-                .forEach(c -> {
-                    switch (c.getType()) {
-                        case ContactType.EMAIL -> contactDto.setEmail(c.getValue());
-                        case ContactType.PHONE -> contactDto.setPhone(c.getValue());
-                        case ContactType.MESSENGER -> contactDto.setMessenger(c.getValue());
-                    }
-                    if (c.getIsPrimary()) {
-                        contactDto.setPrimaryContactType(c.getType());
-                    }
-                });
-
-        return contactDto;
-    }
+    private final ContactMapper contactMapper;
 
     public ContactsDto getContacts(Long userId) {
-        return parseToDto(this.contactRepository.findAllByUserId(userId));
+        return contactMapper.toDto(this.contactRepository.findAllByUserId(userId));
     }
 
     @Transactional

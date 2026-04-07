@@ -1,8 +1,8 @@
 package com.aimed.aimed.notification;
 
-import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.message.MessageRepository;
 import com.aimed.aimed.message.dto.MessageDto;
+import com.aimed.aimed.message.entity.InvitationMessagePayload;
 import com.aimed.aimed.message.entity.Message;
 import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.notification.dto.DoctorDataDto;
@@ -13,6 +13,8 @@ import com.aimed.aimed.notification.entity.Invitation;
 import com.aimed.aimed.notification.entity.Notification;
 import com.aimed.aimed.notification.enums.InvitationStatus;
 import com.aimed.aimed.notification.enums.NotificationType;
+import com.aimed.aimed.notification.mapper.DoctorViewMapper;
+import com.aimed.aimed.notification.mapper.PatientViewMapper;
 import com.aimed.aimed.notification.repository.InvitationRepository;
 import com.aimed.aimed.notification.repository.NotificationRepository;
 import com.aimed.aimed.user.entity.User;
@@ -34,33 +36,39 @@ public class NotificationService {
     private final InvitationRepository invitationRepository;
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final ContactService contactService;
     private final MessageRepository messageRepository;
+
+    private final PatientViewMapper patientViewMapper;
+    private final DoctorViewMapper doctorViewMapper;
 
     @Transactional
     public MessageDto inviteDoctor(Long patientId, InvitationDto invitationDto) {
         User doctor = this.userRepository.findById(invitationDto.doctorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"));
 
-        Message invitationMessage = new Message(invitationDto.chatId(), MessageType.INVITATION);
-        invitationMessage.setInvitationPayload(
-                new Invitation(
-                        patientId,
-                        doctor,
-                        invitationDto.content(),
-                        new DoctorDataDto(doctor.getFullName()),
-                        invitationMessage
-                )
-        );
-        Message savedInvitationMessage = this.messageRepository.save(invitationMessage);
+        Invitation invitation = this.invitationRepository.save(new Invitation(
+                this.userRepository.getReferenceById(patientId),
+                doctor,
+                invitationDto.content()
+        ));
 
         this.notificationRepository.save(
                 new Notification(
                         invitationDto.doctorId(),
                         NotificationType.DOCTOR,
-                        savedInvitationMessage.getInvitationPayload()
+                        invitation
                 )
         );
+
+        Message invitationMessage = new Message(invitationDto.chatId(), MessageType.INVITATION);
+        invitationMessage.setInvitationPayload(
+                new InvitationMessagePayload(
+                        invitationMessage,
+                        invitationDto.content(),
+                        new DoctorDataDto(doctor.getFullName())
+                )
+        );
+        Message savedInvitationMessage = this.messageRepository.save(invitationMessage);
 
         return savedInvitationMessage.toDto();
     }
@@ -76,12 +84,13 @@ public class NotificationService {
         invitationRepository.save(invitation);
 
         this.notificationRepository.save(
-                new Notification(invitation.getPatientId(), NotificationType.PATIENT, invitation)
+                new Notification(invitation.getPatient().getId(), NotificationType.PATIENT, invitation)
         );
     }
 
     public List<?> getNotifications(Long userId, UserRole role) {
         List<Notification> notifications = this.notificationRepository.findByReceiverId(userId);
+
         switch (role) {
             case UserRole.PATIENT -> {
                 return notifications.stream()
@@ -89,11 +98,12 @@ public class NotificationService {
                             InvitationStatus status = n.getInvitation().getStatus();
                             return new PatientNotificationDto(
                                     n.getId(),
-                                    n.getType(),
+                                    NotificationType.PATIENT,
                                     n.getCreatedAt(),
+                                    n.getInvitation().getContent(),
                                     status,
                                     status == InvitationStatus.APPROVED
-                                            ? contactService.parseToDto(n.getInvitation().getDoctor().getContacts())
+                                            ? doctorViewMapper.toDoctorViewDto(n.getInvitation().getDoctor())
                                             : null
                             );
                         })
@@ -105,9 +115,11 @@ public class NotificationService {
                             InvitationStatus status = n.getInvitation().getStatus();
                             return new DoctorNotificationDto(
                                     n.getId(),
-                                    n.getType(),
+                                    NotificationType.DOCTOR,
                                     n.getCreatedAt(),
-                                    n.getInvitation().getContent()
+                                    n.getInvitation().getContent(),
+                                    n.getInvitation().getStatus(),
+                                    patientViewMapper.toPatientViewDto(n.getInvitation().getPatient())
                             );
                         })
                         .toList();

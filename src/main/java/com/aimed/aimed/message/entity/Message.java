@@ -82,5 +82,5 @@ public class Message {
     private DoctorSuggestionsMessagePayload doctorSuggestionsPayload;
 
     @OneToOne(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Invitation invitationPayload;
+    private InvitationMessagePayload invitationPayload;
 }
