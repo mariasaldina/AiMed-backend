@@ -1,6 +1,5 @@
 package com.aimed.aimed.user;
 
-import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.contact.ContactsDto;
 import com.aimed.aimed.contact.mapper.ContactMapper;
 import com.aimed.aimed.specialization.Specialization;
@@ -80,7 +79,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto fillInPatientQuestionnaire(Long userId, PatientDto patientDto) {
+    public UserResponseDto fillInPatientQuestionnaire(Long userId, UpdatePatientDto patientDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.PATIENT) {
@@ -90,6 +89,7 @@ public class UserService {
         PatientProfile patientProfile = patientRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
 
+        user.setFullName(patientDto.fullName());
         patientProfile.setAddress(patientDto.address());
         patientProfile.setBirthdate(patientDto.birthdate());
         patientProfile.setGender(patientDto.gender());
@@ -106,7 +106,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto fillInDoctorQuestionnaire(Long userId, DoctorDto doctorDto) {
+    public UserResponseDto fillInDoctorQuestionnaire(Long userId, UpdateDoctorDto doctorDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
         if (user.getRole() != UserRole.DOCTOR) {
@@ -116,6 +116,7 @@ public class UserService {
         DoctorProfile doctorProfile = doctorRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
 
+        user.setFullName(doctorDto.fullName());
         doctorProfile.setAddress(doctorDto.address());
         doctorProfile.setEducation(doctorDto.education());
         doctorProfile.setDescription(doctorDto.description());

@@ -11,6 +11,6 @@ public record DoctorViewDto(
         String education,
         String description,
         LocalDate practiceStartDate,
-        List<Long> specializationIds,
+        List<String> specializations,
         ContactsDto contacts
 ) { }

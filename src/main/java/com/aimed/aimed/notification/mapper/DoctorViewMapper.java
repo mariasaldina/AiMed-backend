@@ -13,10 +13,21 @@ public interface DoctorViewMapper {
     @Mapping(target = "education", source = "user.doctorProfile.education")
     @Mapping(target = "description", source = "user.doctorProfile.description")
     @Mapping(target = "practiceStartDate", source = "user.doctorProfile.practiceStartDate")
-    @Mapping(target = "specializationIds", expression = "java(user.getDoctorProfile()" +
+    @Mapping(target = "specializations", expression = "java(user.getDoctorProfile()" +
             ".getSpecializations().stream()" +
-            ".map(com.aimed.aimed.specialization.Specialization::getId)" +
+            ".map(com.aimed.aimed.specialization.Specialization::getName)" +
             ".toList())")
     @Mapping(target = "contacts", source = "user.contacts")
-    DoctorViewDto toDoctorViewDto(User user);
+    DoctorViewDto toDtoApproved(User user);
+
+    @Mapping(target = "address", source = "user.doctorProfile.address")
+    @Mapping(target = "education", source = "user.doctorProfile.education")
+    @Mapping(target = "description", source = "user.doctorProfile.description")
+    @Mapping(target = "practiceStartDate", source = "user.doctorProfile.practiceStartDate")
+    @Mapping(target = "specializations", expression = "java(user.getDoctorProfile()" +
+            ".getSpecializations().stream()" +
+            ".map(com.aimed.aimed.specialization.Specialization::getName)" +
+            ".toList())")
+    @Mapping(target = "contacts", expression = "java(null)")
+    DoctorViewDto toDtoRejected(User user);
 }

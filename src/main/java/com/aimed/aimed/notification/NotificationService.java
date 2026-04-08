@@ -89,7 +89,7 @@ public class NotificationService {
     }
 
     public List<?> getNotifications(Long userId, UserRole role) {
-        List<Notification> notifications = this.notificationRepository.findByReceiverId(userId);
+        List<Notification> notifications = this.notificationRepository.findByReceiverIdOrderByCreatedAtDesc(userId);
 
         switch (role) {
             case UserRole.PATIENT -> {
@@ -103,8 +103,8 @@ public class NotificationService {
                                     n.getInvitation().getContent(),
                                     status,
                                     status == InvitationStatus.APPROVED
-                                            ? doctorViewMapper.toDoctorViewDto(n.getInvitation().getDoctor())
-                                            : null
+                                            ? doctorViewMapper.toDtoApproved(n.getInvitation().getDoctor())
+                                            : doctorViewMapper.toDtoRejected(n.getInvitation().getDoctor())
                             );
                         })
                         .toList();

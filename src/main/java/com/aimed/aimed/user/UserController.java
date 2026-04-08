@@ -1,9 +1,6 @@
 package com.aimed.aimed.user;
 
-import com.aimed.aimed.user.dto.DoctorDto;
-import com.aimed.aimed.user.dto.PatientDto;
-import com.aimed.aimed.user.dto.UserDto;
-import com.aimed.aimed.user.dto.UserResponseDto;
+import com.aimed.aimed.user.dto.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +25,7 @@ public class UserController {
     @PutMapping("/patient-questionnaire")
     public UserResponseDto fillInPatientQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody() PatientDto reqBody
+            @RequestBody() UpdatePatientDto reqBody
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
         return this.userService.fillInPatientQuestionnaire(userId, reqBody);
@@ -37,7 +34,7 @@ public class UserController {
     @PutMapping("/doctor-questionnaire")
     public UserResponseDto fillInDoctorQuestionnaire(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody() DoctorDto reqBody
+            @RequestBody() UpdateDoctorDto reqBody
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
         return this.userService.fillInDoctorQuestionnaire(userId, reqBody);
