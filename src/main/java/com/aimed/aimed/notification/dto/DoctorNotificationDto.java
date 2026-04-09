@@ -11,5 +11,6 @@ public record DoctorNotificationDto(
         OffsetDateTime createdAt,
         String content,
         InvitationStatus invitationStatus,
+        Boolean isRead,
         PatientViewDto patient
-) { }
+) implements NotificationDto { }

@@ -2,6 +2,7 @@ package com.aimed.aimed.notification;
 
 import com.aimed.aimed.message.dto.MessageDto;
 import com.aimed.aimed.notification.dto.InvitationDto;
+import com.aimed.aimed.notification.dto.NotificationListDto;
 import com.aimed.aimed.notification.enums.InvitationStatus;
 import com.aimed.aimed.user.enums.UserRole;
 import lombok.RequiredArgsConstructor;
@@ -39,9 +40,18 @@ public class NotificationController {
     }
 
     @GetMapping("")
-    public List<?> getNotifications(@AuthenticationPrincipal Jwt jwt) {
+    public NotificationListDto getNotifications(@AuthenticationPrincipal Jwt jwt) {
         Long userId = Long.valueOf(jwt.getSubject());
         UserRole role = UserRole.valueOf(jwt.getClaimAsString("role").replace("ROLE_", ""));
         return this.notificationService.getNotifications(userId, role);
+    }
+
+    public record NotificationsToReadDto (
+            List<Long> notificationIds
+    ) {}
+
+    @PatchMapping("/read")
+    public void readNotification(@RequestBody NotificationsToReadDto dto) {
+        this.notificationService.readNotifications(dto.notificationIds());
     }
 }

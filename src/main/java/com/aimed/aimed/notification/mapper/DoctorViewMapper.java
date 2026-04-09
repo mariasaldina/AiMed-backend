@@ -2,9 +2,12 @@ package com.aimed.aimed.notification.mapper;
 
 import com.aimed.aimed.contact.mapper.ContactMapper;
 import com.aimed.aimed.notification.dto.DoctorViewDto;
+import com.aimed.aimed.notification.entity.Invitation;
+import com.aimed.aimed.notification.enums.InvitationStatus;
 import com.aimed.aimed.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring", uses = {ContactMapper.class})
 public interface DoctorViewMapper {
@@ -30,4 +33,11 @@ public interface DoctorViewMapper {
             ".toList())")
     @Mapping(target = "contacts", expression = "java(null)")
     DoctorViewDto toDtoRejected(User user);
+
+    @Named("toDtoByStatus")
+    default DoctorViewDto toDtoByStatus(Invitation invitation) {
+        return invitation.getStatus() == InvitationStatus.APPROVED
+                ? toDtoApproved(invitation.getDoctor())
+                : toDtoRejected(invitation.getDoctor());
+    }
 }

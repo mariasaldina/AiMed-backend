@@ -66,8 +66,6 @@ public class UserService {
                     default -> null;
                 };
 
-        ContactsDto contacts = this.contactMapper.toDto(user.getContacts());
-
         return new UserResponseDto(
                 user.getId(),
                 user.getUsername(),
