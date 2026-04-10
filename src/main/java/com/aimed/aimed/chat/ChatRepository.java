@@ -10,24 +10,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
-    @Modifying
-    @Transactional
-    @Query(
-            value = """
-                    INSERT INTO chats_symptoms (chat_id, symptom_id)
-                    SELECT :chatId, s.id
-                    FROM symptoms s
-                    WHERE s.id IN (:symptomIds)
-                    ON CONFLICT DO NOTHING
-                    """,
-            nativeQuery = true
-    )
-    void addSymptomsToChat(
-            @Param("chatId") Long chatId,
-            @Param("symptomIds") List<Long> symptomIds
-    );
 
-    <T> List<T> findAllByUserIdOrderByIdDesc(Long userId, Class<T> type);
+    <T> List<T> findAllByUserIdOrderByLastMessageAtDesc(Long userId, Class<T> type);
 
     @Modifying
     @Query("UPDATE Chat c SET c.context = :context WHERE c.id = :chatId")

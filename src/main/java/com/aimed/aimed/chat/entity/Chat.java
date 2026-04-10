@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "chats")
 @Getter
@@ -27,4 +29,6 @@ public class Chat {
     private String title;
 
     private String context;
+
+    private OffsetDateTime lastMessageAt;
 }

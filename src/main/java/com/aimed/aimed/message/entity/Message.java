@@ -1,5 +1,6 @@
 package com.aimed.aimed.message.entity;
 
+import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.notification.entity.Invitation;
@@ -21,10 +22,11 @@ import java.time.OffsetDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
 
-    public Message(Long chatId, MessageType type) {
-        this.chatId = chatId;
+    public Message(Chat chat, MessageType type) {
+        this.chat = chat;
         this.type = type;
         this.createdAt = OffsetDateTime.now();
+        this.chat.setLastMessageAt(this.createdAt);
     }
 
     public MessageDto toDto() {
@@ -60,9 +62,9 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @JsonIgnore
-    private Long chatId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_id")
+    private Chat chat;
 
     @NotNull
     private OffsetDateTime createdAt;

@@ -1,5 +1,7 @@
 package com.aimed.aimed.notification;
 
+import com.aimed.aimed.chat.ChatRepository;
+import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.message.MessageRepository;
 import com.aimed.aimed.message.dto.MessageDto;
 import com.aimed.aimed.message.entity.InvitationMessagePayload;
@@ -36,6 +38,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final ChatRepository chatRepository;
 
     private final PatientNotificationMapper patientNotificationMapper;
     private final DoctorNotificationMapper doctorNotificationMapper;
@@ -44,6 +47,8 @@ public class NotificationService {
     public MessageDto inviteDoctor(Long patientId, InvitationDto invitationDto) {
         User doctor = this.userRepository.findById(invitationDto.doctorId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such doctor"));
+        Chat chat = this.chatRepository.findById(invitationDto.chatId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such chat"));
 
         Invitation invitation = this.invitationRepository.save(new Invitation(
                 this.userRepository.getReferenceById(patientId),
@@ -59,7 +64,7 @@ public class NotificationService {
                 )
         );
 
-        Message invitationMessage = new Message(invitationDto.chatId(), MessageType.INVITATION);
+        Message invitationMessage = new Message(chat, MessageType.INVITATION);
         invitationMessage.setInvitationPayload(
                 new InvitationMessagePayload(
                         invitationMessage,

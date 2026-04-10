@@ -43,12 +43,12 @@ public class ChatService {
         Chat chat = this.chatRepository.findById(chatId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such chat"));
 
-        Message userMessage = new Message(chatId, MessageType.USER);
+        Message userMessage = new Message(chat, MessageType.USER);
         userMessage.setUserPayload(new UserMessagePayload(userMessage, content));
         Message savedUserMessage = this.messageRepository.save(userMessage);
 
         Pageable pageable = PageRequest.of(0, 8, Sort.by("createdAt").descending());
-        List<Message> messages = this.messageRepository.findAssistantUserByChatId(
+        List<Message> messages = this.messageRepository.findByChatIdAndTypeIn(
                         chatId,
                         List.of(MessageType.USER, MessageType.ASSISTANT),
                         pageable
@@ -58,7 +58,7 @@ public class ChatService {
         AssistantMessageDto dto = this.chatPromptManager
                 .getAssistantResponse(chat.getContext(), messages);
 
-        Message assistantMessage = new Message(chatId, MessageType.ASSISTANT);
+        Message assistantMessage = new Message(chat, MessageType.ASSISTANT);
         assistantMessage.setAssistantPayload(new AssistantMessagePayload(
                 assistantMessage,
                 dto.possibleCauses(),
@@ -87,13 +87,13 @@ public class ChatService {
         );
         Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").ascending());
 
-        return this.messageRepository.findAllByChatId(chatId, pageable).stream()
+        return this.messageRepository.findByChatId(chatId, pageable).stream()
                 .map(Message::toDto)
                 .toList();
     }
 
     public List<ChatDto> getChats(Long userId) {
-        return this.chatRepository.findAllByUserIdOrderByIdDesc(userId, ChatDto.class);
+        return this.chatRepository.findAllByUserIdOrderByLastMessageAtDesc(userId, ChatDto.class);
     }
 
     @Transactional
@@ -135,7 +135,7 @@ public class ChatService {
                 ))
                 .toList();
 
-        Message message = new Message(chatId, MessageType.DOCTOR_SUGGESTIONS);
+        Message message = new Message(chat, MessageType.DOCTOR_SUGGESTIONS);
         message.setDoctorSuggestionsPayload(new DoctorSuggestionsMessagePayload(message, sortedDoctors));
 
         return messageRepository.save(message).toDto();
