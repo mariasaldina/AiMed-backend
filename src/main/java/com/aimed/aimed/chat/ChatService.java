@@ -1,6 +1,7 @@
 package com.aimed.aimed.chat;
 
 import com.aimed.aimed.chat.dto.ChatDto;
+import com.aimed.aimed.chat.dto.MessagePageDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.contact.ContactService;
@@ -21,12 +22,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -81,15 +84,26 @@ public class ChatService {
         return new ChatDto(chat.getId(), chat.getTitle());
     }
 
-    public List<MessageDto> getMessages(Long chatId) {
+    public MessagePageDto getMessages(Long chatId, OffsetDateTime before, Integer limit) {
         this.chatRepository.findById(chatId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found")
         );
-        Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").ascending());
+        Pageable pageable = PageRequest.of(0, limit);
 
-        return this.messageRepository.findByChatId(chatId, pageable).stream()
-                .map(Message::toDto)
-                .toList();
+        Slice<Message> messages;
+        if (before == null) {
+            messages = this.messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
+        } else {
+            messages = this.messageRepository.findByChatIdBefore(chatId, before, pageable);
+        }
+
+        return new MessagePageDto(
+                messages.stream()
+                        .map(Message::toDto)
+                        .toList()
+                        .reversed(),
+                messages.hasNext()
+        );
     }
 
     public List<ChatDto> getChats(Long userId) {

@@ -1,6 +1,7 @@
 package com.aimed.aimed.chat;
 
 import com.aimed.aimed.chat.dto.ChatDto;
+import com.aimed.aimed.chat.dto.MessagePageDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.message.dto.MessageDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -65,13 +67,13 @@ public class ChatController {
         }
     }
 
-    public record ChatMessagesDto (
-            List<MessageDto> messages
-    ) {}
-
     @GetMapping("/{chatId}")
-    public ChatMessagesDto getMessages(@PathVariable Long chatId) {
-        return new ChatMessagesDto(this.chatService.getMessages(chatId));
+    public MessagePageDto getMessages(
+            @PathVariable Long chatId,
+            @RequestParam(required = false) OffsetDateTime before,
+            @RequestParam Integer limit
+            ) {
+        return this.chatService.getMessages(chatId, before, limit);
     }
 
     @DeleteMapping("/{chatId}")
