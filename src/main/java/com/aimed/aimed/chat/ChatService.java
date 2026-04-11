@@ -81,7 +81,7 @@ public class ChatService {
     @Transactional
     public ChatDto create(Long userId, String title) {
         Chat chat = this.chatRepository.save(new Chat(userId, title));
-        return new ChatDto(chat.getId(), chat.getTitle());
+        return new ChatDto(chat.getId(), chat.getTitle(), chat.getLastMessageAt());
     }
 
     public MessagePageDto getMessages(Long chatId, OffsetDateTime before, Integer limit) {
@@ -107,7 +107,12 @@ public class ChatService {
     }
 
     public List<ChatDto> getChats(Long userId) {
-        return this.chatRepository.findAllByUserIdOrderByLastMessageAtDesc(userId, ChatDto.class);
+        return this.chatRepository.findAllByUserIdOrderByLastMessageAtDesc(userId, ChatDto.class)
+                .stream().sorted(Comparator.comparing(
+                        ChatDto::lastMessageAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                ))
+                .toList();
     }
 
     @Transactional
