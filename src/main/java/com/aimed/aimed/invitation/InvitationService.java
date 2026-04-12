@@ -89,18 +89,44 @@ public class InvitationService {
 
     public List<InvitationResponseDto> getAll(Long userId, UserRole role) {
         if (role == UserRole.PATIENT) {
-            return this.invitationRepository.findAllByPatientId(userId).stream()
+            return this.invitationRepository.findAllByPatientIdOrderByCreatedAtDesc(userId).stream()
                     .map(invitationMapper::toDto)
                     .toList();
         }
 
         if (role == UserRole.DOCTOR) {
-            return this.invitationRepository.findAllByDoctorIdAndStatusNot(userId, InvitationStatus.CANCELLED)
+            return this.invitationRepository.findAllByDoctorIdAndStatusNotOrderByCreatedAtDesc(
+                            userId,
+                            InvitationStatus.CANCELLED
+                    )
                     .stream()
                     .map(invitationMapper::toDto)
                     .toList();
         }
 
         return List.of();
+    }
+
+    @Transactional
+    public void cancelInvitation(Long patientId, Long invitationId) {
+        Invitation invitation = getInvitation(invitationId);
+        if (!invitation.getPatient().getId().equals(patientId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You don't have rights to cancel this invitation"
+            );
+        }
+        if (invitation.getStatus() != InvitationStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid invitation status");
+        }
+
+        invitation.setStatus(InvitationStatus.CANCELLED);
+        invitationRepository.save(invitation);
+
+        this.notificationService.save(
+                invitation.getDoctor().getId(),
+                invitation,
+                InvitationStatus.CANCELLED
+        );
     }
 }

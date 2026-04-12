@@ -45,4 +45,13 @@ public class InvitationController {
         Long doctorId = Long.valueOf(jwt.getSubject());
         this.invitationService.saveDoctorsResponse(doctorId, invitationId, dto.status);
     }
+
+    @PostMapping("/{invitationId}/cancel")
+    public void cancelInvitation(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("invitationId") Long invitationId
+    ) {
+        Long patientId = Long.valueOf(jwt.getSubject());
+        this.invitationService.cancelInvitation(patientId, invitationId);
+    }
 }

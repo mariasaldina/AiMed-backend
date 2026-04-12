@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface InvitationRepository extends JpaRepository<Invitation, Long> {
 
-    List<Invitation> findAllByPatientId(Long patientId);
-    List<Invitation> findAllByDoctorIdAndStatusNot(Long doctorId, InvitationStatus status);
+    List<Invitation> findAllByPatientIdOrderByCreatedAtDesc(Long patientId);
+    List<Invitation> findAllByDoctorIdAndStatusNotOrderByCreatedAtDesc(Long doctorId, InvitationStatus status);
 }
