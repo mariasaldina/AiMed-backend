@@ -6,9 +6,11 @@ import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.contact.ContactsDto;
+import com.aimed.aimed.message.MessageService;
 import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.entity.*;
 import com.aimed.aimed.message.enums.MessageType;
+import com.aimed.aimed.message.mapper.MessageMapper;
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.message.MessageRepository;
 import com.aimed.aimed.specialization.SpecializationRepository;
@@ -20,6 +22,7 @@ import com.aimed.aimed.user.repository.DoctorProfileRepository;
 import com.aimed.aimed.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -41,41 +44,35 @@ public class ChatService {
     private final ChatPromptManager chatPromptManager;
     private final DoctorProfileRepository doctorProfileRepository;
 
+    private final MessageMapper messageMapper;
+
+    private final MessageService messageService;
+
+    public Chat getChat(Long chatId) {
+        return this.chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such chat"));
+    }
+
     @Transactional
     public MessageResponseDto processMessage(Long chatId, String content) throws JsonProcessingException {
-        Chat chat = this.chatRepository.findById(chatId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such chat"));
+        Chat chat = getChat(chatId);
 
-        Message userMessage = new Message(chat, MessageType.USER);
-        userMessage.setUserPayload(new UserMessagePayload(userMessage, content));
-        Message savedUserMessage = this.messageRepository.save(userMessage);
+        Message userMessage = this.messageService.saveUserMessage(chat, content);
+        List<Message> messages = this.messageService.getNLastMessages(chatId, 8);
 
-        Pageable pageable = PageRequest.of(0, 8, Sort.by("createdAt").descending());
-        List<Message> messages = this.messageRepository.findByChatIdAndTypeIn(
-                        chatId,
-                        List.of(MessageType.USER, MessageType.ASSISTANT),
-                        pageable
-                )
-                .reversed();
-
-        AssistantMessageDto dto = this.chatPromptManager
-                .getAssistantResponse(chat.getContext(), messages);
-
-        Message assistantMessage = new Message(chat, MessageType.ASSISTANT);
-        assistantMessage.setAssistantPayload(new AssistantMessagePayload(
-                assistantMessage,
-                dto.possibleCauses(),
-                dto.recommendations(),
-                dto.urgency(),
-                dto.doctors()
-        ));
-        Message savedAssistantMessage = this.messageRepository.save(assistantMessage);
+        Message assistantMessage = this.messageService.saveAssistantMessage(
+                chat,
+                this.chatPromptManager.getAssistantResponse(chat.getContext(), messages)
+        );
         messages.add(assistantMessage);
 
         String newContext = chatPromptManager.updateContext(chat.getContext(), messages);
         chatRepository.updateContextById(chatId, newContext);
 
-        return new MessageResponseDto(savedUserMessage.toDto(), savedAssistantMessage.toDto());
+        return new MessageResponseDto(
+                messageMapper.toDto(userMessage),
+                messageMapper.toDto(assistantMessage)
+        );
     }
 
     @Transactional
@@ -85,21 +82,12 @@ public class ChatService {
     }
 
     public MessagePageDto getMessages(Long chatId, OffsetDateTime before, Integer limit) {
-        this.chatRepository.findById(chatId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found")
-        );
-        Pageable pageable = PageRequest.of(0, limit);
-
-        Slice<Message> messages;
-        if (before == null) {
-            messages = this.messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
-        } else {
-            messages = this.messageRepository.findByChatIdBefore(chatId, before, pageable);
-        }
+        getChat(chatId);
+        Slice<Message> messages = this.messageService.getNMessagesBefore(chatId, before, limit);
 
         return new MessagePageDto(
                 messages.stream()
-                        .map(Message::toDto)
+                        .map(messageMapper::toDto)
                         .toList()
                         .reversed(),
                 messages.hasNext()
@@ -126,13 +114,12 @@ public class ChatService {
 
     @Transactional
     public MessageDto findDoctors(Long chatId) throws JsonProcessingException {
-        Chat chat = this.chatRepository.findById(chatId)
-                .orElseThrow(() ->  new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found"));
+        Chat chat = getChat(chatId);
 
         List<Long> specializationIds = this.chatPromptManager.analyzeContext(chat.getContext());
         List<DoctorProfile> doctors = doctorProfileRepository.findAllBySpecializationIds(specializationIds);
 
-        List<DoctorSuggestionDto> sortedDoctors = doctors.stream()
+        List<User> sortedDoctors = doctors.stream()
                 .filter(d -> d.getLicense() != null && !d.getLicenseExpiryDate().isBefore(LocalDate.now()))
                 .sorted(Comparator
                         .comparing((DoctorProfile d) ->
@@ -143,20 +130,9 @@ public class ChatService {
                         .thenComparing(DoctorProfile::getPracticeStartDate)
                 )
                 .limit(5)
-                .map(d -> new DoctorSuggestionDto(
-                        d.getUserId(),
-                        d.getUser().getFullName(),
-                        d.getSpecializations().stream().map(Specialization::getName).toList(),
-                        d.getAddress(),
-                        d.getEducation(),
-                        d.getDescription(),
-                        d.getPracticeStartDate()
-                ))
+                .map(DoctorProfile::getUser)
                 .toList();
 
-        Message message = new Message(chat, MessageType.DOCTOR_SUGGESTIONS);
-        message.setDoctorSuggestionsPayload(new DoctorSuggestionsMessagePayload(message, sortedDoctors));
-
-        return messageRepository.save(message).toDto();
+        return messageMapper.toDto(messageService.saveDoctorSuggestionsMessage(chat, sortedDoctors));
     }
 }

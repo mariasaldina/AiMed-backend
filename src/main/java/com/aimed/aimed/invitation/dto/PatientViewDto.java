@@ -1,4 +1,4 @@
-package com.aimed.aimed.notification.dto;
+package com.aimed.aimed.invitation.dto;
 
 import com.aimed.aimed.user.enums.Gender;
 

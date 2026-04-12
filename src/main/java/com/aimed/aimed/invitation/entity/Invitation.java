@@ -1,6 +1,7 @@
-package com.aimed.aimed.notification.entity;
+package com.aimed.aimed.invitation.entity;
 
-import com.aimed.aimed.notification.enums.InvitationStatus;
+import com.aimed.aimed.invitation.enums.InvitationStatus;
+import com.aimed.aimed.message.entity.Message;
 import com.aimed.aimed.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -50,4 +51,8 @@ public class Invitation {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private InvitationStatus status;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id", nullable = true)
+    private Message message;
 }

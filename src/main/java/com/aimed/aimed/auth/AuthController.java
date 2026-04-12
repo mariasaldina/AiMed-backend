@@ -37,7 +37,7 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignUpDto req, HttpServletResponse res) {
-        UserDto user = this.authService.createUser(req.username(), req.password(), req.role());
+        UserDto user = this.authService.createUser(req.username(), req.password(), req.role(), req.fullName());
 
         Tokens tokens = this.authService.generateTokens(user.id(), user.role().toString());
         setCookies(res, "access", tokens.access(), true);

@@ -1,4 +1,13 @@
 package com.aimed.aimed.notification.dto;
 
-public interface NotificationDto {
-}
+import com.aimed.aimed.invitation.enums.InvitationStatus;
+
+import java.time.OffsetDateTime;
+
+public record NotificationDto(
+        Long id,
+        InvitationStatus status,
+        Long invitationId,
+        Boolean isRead,
+        OffsetDateTime createdAt
+) { }

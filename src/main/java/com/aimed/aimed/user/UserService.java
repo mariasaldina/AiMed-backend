@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,9 +34,14 @@ public class UserService {
     private final DoctorMapper doctorMapper;
     private final ContactMapper contactMapper;
 
+    public User getUser(Long userId) {
+        return this.userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
+    }
+
     @Transactional
-    public User create(String username, String password, UserRole role) {
-        User user = new User(username, password, role);
+    public User create(String username, String password, UserRole role, String fullName) {
+        User user = new User(username, password, role, fullName);
         if (role == UserRole.PATIENT) {
             PatientProfile patientProfile = new PatientProfile();
             patientProfile.setUser(user);

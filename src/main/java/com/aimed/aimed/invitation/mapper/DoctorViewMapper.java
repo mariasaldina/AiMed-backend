@@ -1,9 +1,9 @@
-package com.aimed.aimed.notification.mapper;
+package com.aimed.aimed.invitation.mapper;
 
 import com.aimed.aimed.contact.mapper.ContactMapper;
-import com.aimed.aimed.notification.dto.DoctorViewDto;
-import com.aimed.aimed.notification.entity.Invitation;
-import com.aimed.aimed.notification.enums.InvitationStatus;
+import com.aimed.aimed.invitation.dto.DoctorViewDto;
+import com.aimed.aimed.invitation.entity.Invitation;
+import com.aimed.aimed.invitation.enums.InvitationStatus;
 import com.aimed.aimed.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,12 +32,12 @@ public interface DoctorViewMapper {
             ".map(com.aimed.aimed.specialization.Specialization::getName)" +
             ".toList())")
     @Mapping(target = "contacts", expression = "java(null)")
-    DoctorViewDto toDtoRejected(User user);
+    DoctorViewDto toDtoNotApproved(User user);
 
     @Named("toDtoByStatus")
     default DoctorViewDto toDtoByStatus(Invitation invitation) {
         return invitation.getStatus() == InvitationStatus.APPROVED
                 ? toDtoApproved(invitation.getDoctor())
-                : toDtoRejected(invitation.getDoctor());
+                : toDtoNotApproved(invitation.getDoctor());
     }
 }

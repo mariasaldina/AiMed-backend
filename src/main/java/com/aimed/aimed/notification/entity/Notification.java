@@ -1,6 +1,7 @@
 package com.aimed.aimed.notification.entity;
 
-import com.aimed.aimed.notification.enums.NotificationType;
+import com.aimed.aimed.invitation.entity.Invitation;
+import com.aimed.aimed.invitation.enums.InvitationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,11 +20,11 @@ public class Notification {
 
     public Notification(
             Long receiverId,
-            NotificationType type,
+            InvitationStatus historicStatus,
             Invitation invitation
     ) {
         this.receiverId = receiverId;
-        this.type = type;
+        this.historicStatus = historicStatus;
         this.invitation = invitation;
         this.isRead = false;
         this.createdAt = OffsetDateTime.now();
@@ -37,7 +38,7 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private NotificationType type;
+    private InvitationStatus historicStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invitation_id")

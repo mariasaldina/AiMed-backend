@@ -1,6 +1,6 @@
-package com.aimed.aimed.notification.mapper;
+package com.aimed.aimed.invitation.mapper;
 
-import com.aimed.aimed.notification.dto.PatientViewDto;
+import com.aimed.aimed.invitation.dto.PatientViewDto;
 import com.aimed.aimed.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

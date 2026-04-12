@@ -17,10 +17,11 @@ import java.util.List;
 @NoArgsConstructor
 public class User {
 
-    public User(String username, String password, UserRole role) {
+    public User(String username, String password, UserRole role, String fullName) {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.fullName = fullName;
     }
 
     @Id

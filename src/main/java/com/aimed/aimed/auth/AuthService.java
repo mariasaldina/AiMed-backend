@@ -61,13 +61,13 @@ public class AuthService {
         return generateTokens(user.getId(), role);
     }
 
-    public UserDto createUser(String username, String password, UserRole role) {
+    public UserDto createUser(String username, String password, UserRole role, String fullName) {
         if (this.userService.findByUsername(username).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
         }
 
         String hashed = passwordEncoder.encode(password);
-        User user = this.userService.create(username, hashed, role);
+        User user = this.userService.create(username, hashed, role, fullName);
 
         UserProfileDto profile =
                 switch (user.getRole()) {

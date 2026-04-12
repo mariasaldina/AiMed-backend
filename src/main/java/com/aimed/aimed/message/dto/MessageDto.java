@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -14,7 +15,7 @@ public class MessageDto {
     private OffsetDateTime createdAt;
     private UserMessageDto userPayload;
     private AssistantMessageDto assistantPayload;
-    private DoctorSuggestionsMessageDto doctorSuggestionsPayload;
+    private List<DoctorSuggestionDto> doctorSuggestionsPayload;
     private InvitationMessageDto invitationPayload;
 
     public MessageDto(Long id, MessageType type, OffsetDateTime createdAt) {
