@@ -4,8 +4,10 @@ import com.aimed.aimed.chat.dto.ChatDto;
 import com.aimed.aimed.chat.dto.MessagePageDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
+import com.aimed.aimed.chat.mapper.ChatMapper;
 import com.aimed.aimed.contact.ContactService;
 import com.aimed.aimed.contact.ContactsDto;
+import com.aimed.aimed.invitation.InvitationService;
 import com.aimed.aimed.message.MessageService;
 import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.entity.*;
@@ -45,6 +47,7 @@ public class ChatService {
     private final DoctorProfileRepository doctorProfileRepository;
 
     private final MessageMapper messageMapper;
+    private final ChatMapper chatMapper;
 
     private final MessageService messageService;
 
@@ -95,21 +98,24 @@ public class ChatService {
     }
 
     public List<ChatDto> getChats(Long userId) {
-        return this.chatRepository.findAllByUserIdOrderByLastMessageAtDesc(userId, ChatDto.class)
-                .stream().sorted(Comparator.comparing(
-                        ChatDto::lastMessageAt,
-                        Comparator.nullsLast(Comparator.reverseOrder())
-                ))
+        return this.chatRepository.findAllByUserId(userId)
+                .stream()
+                .map(chatMapper::toDto)
                 .toList();
     }
 
     @Transactional
     public void deleteChat(Long chatId) {
-        this.chatRepository.findById(chatId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Chat not found")
-        );
+        getChat(chatId);
+        this.chatRepository.detachInvitations(chatId);
         this.messageRepository.deleteByChatId(chatId);
         this.chatRepository.deleteById(chatId);
+    }
+
+    @Transactional
+    public void renameChat(Long chatId, String title) {
+        Chat chat = getChat(chatId);
+        chat.setTitle(title);
     }
 
     @Transactional

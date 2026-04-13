@@ -81,6 +81,15 @@ public class ChatController {
         this.chatService.deleteChat(chatId);
     }
 
+    public record RenameChatDto(
+            String title
+    ) {}
+
+    @PatchMapping("/{chatId}")
+    public void renameChat(@PathVariable Long chatId, @RequestBody RenameChatDto dto) {
+        this.chatService.renameChat(chatId, dto.title());
+    }
+
     @PostMapping("/{chatId}/doctors")
     public ResponseEntity<?> findDoctors(@PathVariable Long chatId) {
         try {

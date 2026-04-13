@@ -16,6 +16,7 @@ public class Chat {
     public Chat(Long userId, String title) {
         this.userId = userId;
         this.title = title;
+        this.createdAt = OffsetDateTime.now();
     }
 
     @Id
@@ -31,4 +32,6 @@ public class Chat {
     private String context;
 
     private OffsetDateTime lastMessageAt;
+
+    private OffsetDateTime createdAt;
 }

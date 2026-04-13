@@ -11,9 +11,23 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
-    <T> List<T> findAllByUserIdOrderByLastMessageAtDesc(Long userId, Class<T> type);
+    @Query(value = """
+        SELECT *
+        FROM chats c
+        WHERE c.user_id = :userId
+        ORDER BY COALESCE(c.last_message_at, c.created_at) DESC
+    """, nativeQuery = true)
+    List<Chat> findAllByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("UPDATE Chat c SET c.context = :context WHERE c.id = :chatId")
     int updateContextById(@Param("chatId") Long chatId, @Param("context") String context);
+
+    @Modifying
+    @Query("""
+        UPDATE Invitation i
+        SET i.message = NULL
+        WHERE i.message.chat.id = :chatId
+    """)
+    void detachInvitations(Long chatId);
 }
