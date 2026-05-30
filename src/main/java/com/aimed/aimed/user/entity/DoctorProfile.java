@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -58,5 +59,5 @@ public class DoctorProfile {
             joinColumns = @JoinColumn(name = "doctor_id"),
             inverseJoinColumns = @JoinColumn(name = "specialization_id")
     )
-    private Set<Specialization> specializations;
+    private Set<Specialization> specializations = new HashSet<>();
 }
