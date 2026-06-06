@@ -1,1 +1,0 @@
-ALTER TABLE chats ADD COLUMN last_message_at TIMESTAMP WITH TIME ZONE;

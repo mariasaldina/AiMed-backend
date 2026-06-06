@@ -4,11 +4,11 @@ spring:
   config:
     import: "optional:file:.env[.properties]"
   datasource:
-    url: ${POSTGRES_URL}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/aimed}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
   flyway:
-    url: ${POSTGRES_URL}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/aimed}
     user: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     schemas: public
@@ -18,11 +18,6 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
-  ollama:
-    url: ${OLLAMA_URL}
-    default-model: ${OLLAMA_MODEL}
-    default-stream: false
-    apiKey: ${OLLAMA_API_KEY}
   resilience4j:
     retry:
       instances:
@@ -33,9 +28,29 @@ spring:
             - com.fasterxml.jackson.core.JsonProcessingException
           ignore-exceptions:
             - java.lang.IllegalArgumentException
+        embeddingRetry:
+          max-attempts: 3
+          wait-duration: 500ms
+          retry-exceptions:
+            - org.springframework.web.client.ResourceAccessException
+            - org.springframework.web.client.HttpServerErrorException
+          ignore-exceptions:
+            - org.springframework.web.client.HttpClientErrorException
+            - java.lang.IllegalArgumentException
   jwt:
     jwtSecret: ${JWT_SECRET}
     accessExpiration: ${ACCESS_EXP}
     refreshExpiration: ${REFRESH_EXP}
   security:
     clientUrl: http://localhost:3000
+
+ollama:
+  url: ${OLLAMA_URL}
+  default-model: ${OLLAMA_MODEL}
+  default-stream: false
+  apiKey: ${OLLAMA_API_KEY}
+
+embedding:
+  url: ${EMBEDDING_URL:http://tei:80}
+
+kind: Application

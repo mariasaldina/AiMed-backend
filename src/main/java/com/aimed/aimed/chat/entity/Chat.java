@@ -32,6 +32,10 @@ public class Chat {
     private String context;
 
     private OffsetDateTime lastMessageAt;
-
     private OffsetDateTime createdAt;
+    private OffsetDateTime lastUserMessageAt;
+    private OffsetDateTime lastDoctorSearchAt;
+
+    @Column(columnDefinition = "vector(768)")
+    private float[] contextEmbedding;
 }

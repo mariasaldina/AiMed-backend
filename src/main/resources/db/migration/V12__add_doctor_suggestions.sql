@@ -1,6 +1,0 @@
-CREATE TABLE doctor_suggestions (
-    id INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    chat_id INT NOT NULL REFERENCES chats(id),
-    doctor_ids INT[] NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);

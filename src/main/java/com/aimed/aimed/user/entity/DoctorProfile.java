@@ -60,4 +60,7 @@ public class DoctorProfile {
             inverseJoinColumns = @JoinColumn(name = "specialization_id")
     )
     private Set<Specialization> specializations = new HashSet<>();
+
+    @Column(columnDefinition = "vector(768)")
+    private float[] profileEmbedding;
 }

@@ -1,4 +1,4 @@
-package com.aimed.aimed.chat_prompt_manager;
+package com.aimed.aimed.chat;
 
 import com.aimed.aimed.specialization.SpecializationsDictionaryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,7 +26,7 @@ public class ChatPromptManager {
     private final OllamaService ollamaService;
     private final String updateContextPrompt;
     private final String assistantResponsePrompt;
-    private final String analyzeContextPrompt;
+    private final String useContextPrompt;
     private final SpecializationsDictionaryService specializationsDictionaryService;
 
     public ChatPromptManager(
@@ -35,7 +35,7 @@ public class ChatPromptManager {
         this.ollamaService = ollamaService;
         this.updateContextPrompt = this.readPrompt("update_context.txt");
         this.assistantResponsePrompt = this.readPrompt("assistant_response.txt");
-        this.analyzeContextPrompt = this.readPrompt("analyze_context.txt");
+        this.useContextPrompt = this.readPrompt("use_context.txt");
         this.specializationsDictionaryService = specializationsDictionaryService;
     }
 
@@ -84,10 +84,7 @@ public class ChatPromptManager {
 
         OllamaChatMessage contextMessage = new OllamaChatMessage(
                 OllamaChatRole.system,
-                "Используй следующие данные для генерации ответа." +
-                        "Не повторяй их как сообщение пользователя," +
-                        "просто учитывай при формировании рекомендаций и ответов.\n"
-                + context
+                useContextPrompt + context
         );
         reqMessages.addFirst(contextMessage);
 
@@ -130,17 +127,5 @@ public class ChatPromptManager {
                 + formatMessages(messages);
 
         return ollamaService.generatePromptAnswer(prompt);
-    }
-
-    @Retry(name = "symptomAnalysisRetry")
-    public List<Long> analyzeContext(String context) throws JsonProcessingException {
-        String prompt = analyzeContextPrompt
-                + "\nspecializations:\n"
-                + specializationsDictionaryService.getSpecializationsString()
-                + "\nКонтекст диалога:\n"
-                + context;
-        String rawResponse = ollamaService.generatePromptAnswer(prompt);
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(rawResponse, new TypeReference<List<Long>>() {});
     }
 }

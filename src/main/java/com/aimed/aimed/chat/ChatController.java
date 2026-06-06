@@ -93,7 +93,7 @@ public class ChatController {
     @PostMapping("/{chatId}/doctors")
     public ResponseEntity<?> findDoctors(@PathVariable Long chatId) {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(this.chatService.findDoctors(chatId));
+            return ResponseEntity.ok(this.chatService.findDoctors(chatId));
         } catch (JsonProcessingException e) {
             ProblemDetail err = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
             err.setTitle("The service is temporarily unavailable");

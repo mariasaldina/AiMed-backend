@@ -5,30 +5,19 @@ import com.aimed.aimed.chat.dto.MessagePageDto;
 import com.aimed.aimed.chat.dto.MessageResponseDto;
 import com.aimed.aimed.chat.entity.Chat;
 import com.aimed.aimed.chat.mapper.ChatMapper;
-import com.aimed.aimed.contact.ContactService;
-import com.aimed.aimed.contact.ContactsDto;
-import com.aimed.aimed.invitation.InvitationService;
+import com.aimed.aimed.doctorsearch.DoctorSearchService;
 import com.aimed.aimed.message.MessageService;
 import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.entity.*;
-import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.message.mapper.MessageMapper;
-import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.message.MessageRepository;
-import com.aimed.aimed.specialization.SpecializationRepository;
 import com.aimed.aimed.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.aimed.aimed.chat_prompt_manager.ChatPromptManager;
 import com.aimed.aimed.user.entity.DoctorProfile;
 import com.aimed.aimed.user.repository.DoctorProfileRepository;
-import com.aimed.aimed.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,6 +39,7 @@ public class ChatService {
     private final ChatMapper chatMapper;
 
     private final MessageService messageService;
+    private final DoctorSearchService doctorSearchService;
 
     public Chat getChat(Long chatId) {
         return this.chatRepository.findById(chatId)
@@ -121,24 +111,7 @@ public class ChatService {
     @Transactional
     public MessageDto findDoctors(Long chatId) throws JsonProcessingException {
         Chat chat = getChat(chatId);
-
-        List<Long> specializationIds = this.chatPromptManager.analyzeContext(chat.getContext());
-        List<DoctorProfile> doctors = doctorProfileRepository.findAllBySpecializationIds(specializationIds);
-
-        List<User> sortedDoctors = doctors.stream()
-                .filter(d -> d.getLicense() != null && !d.getLicenseExpiryDate().isBefore(LocalDate.now()))
-                .sorted(Comparator
-                        .comparing((DoctorProfile d) ->
-                                d.getEducation() == null
-                                        || d.getDescription() == null
-                                        || d.getEducation().isBlank()
-                                        || d.getDescription().isBlank())
-                        .thenComparing(DoctorProfile::getPracticeStartDate)
-                )
-                .limit(5)
-                .map(DoctorProfile::getUser)
-                .toList();
-
-        return messageMapper.toDto(messageService.saveDoctorSuggestionsMessage(chat, sortedDoctors));
+        List<User> doctors = doctorSearchService.recommendDoctors(chat);
+        return messageMapper.toDto(messageService.saveDoctorSuggestionsMessage(chat, doctors));
     }
 }

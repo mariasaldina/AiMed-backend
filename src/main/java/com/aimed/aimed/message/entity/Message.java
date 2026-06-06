@@ -27,6 +27,12 @@ public class Message {
         this.type = type;
         this.createdAt = OffsetDateTime.now();
         this.chat.setLastMessageAt(this.createdAt);
+        if (type == MessageType.USER) {
+            this.chat.setLastUserMessageAt(this.createdAt);
+        }
+        if (type == MessageType.DOCTOR_SUGGESTIONS) {
+            this.chat.setLastDoctorSearchAt(this.createdAt);
+        }
     }
 
     @Id

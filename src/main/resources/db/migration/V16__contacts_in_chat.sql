@@ -1,7 +1,0 @@
-CREATE TABLE contacts_messages (
-    id INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    chat_id INT NOT NULL REFERENCES chats(id),
-    doctor_id INT NOT NULL REFERENCES users(id),
-    content TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);

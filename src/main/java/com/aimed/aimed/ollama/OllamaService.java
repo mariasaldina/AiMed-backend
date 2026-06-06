@@ -2,34 +2,31 @@ package com.aimed.aimed.ollama;
 
 import com.aimed.aimed.ollama.dto.*;
 import com.aimed.aimed.ollama.enums.OllamaChatRole;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OllamaService {
-    private final WebClient webClient;
+    private final RestClient ollamaClient;
     private final OllamaProperties properties;
-
-    public OllamaService(WebClient webClient, OllamaProperties properties) {
-        this.webClient = webClient;
-        this.properties = properties;
-    }
 
     public String generatePromptAnswer(String prompt, String model) {
         OllamaPromptRequestDto request = new OllamaPromptRequestDto(model, prompt, properties.defaultStream(), 10);
         try {
-            OllamaPromptResponseDto response = webClient.post()
+            OllamaPromptResponseDto response = ollamaClient.post()
                     .uri("/api/generate")
-                    .bodyValue(request)
+                    .body(request)
                     .retrieve()
-                    .bodyToMono(OllamaPromptResponseDto.class)
-                    .block(Duration.ofSeconds(60));
+                    .body(OllamaPromptResponseDto.class);
             return response != null ? response.getResponse() : "No response";
         } catch (Exception e) {
-            return e.getMessage();
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Ollama error");
         }
     }
 
@@ -44,17 +41,16 @@ public class OllamaService {
                 properties.defaultStream());
 
         try {
-            OllamaChatResponseDto response = webClient.post()
+            OllamaChatResponseDto response = ollamaClient.post()
                     .uri("/api/chat")
-                    .bodyValue(request)
+                    .body(request)
                     .retrieve()
-                    .bodyToMono(OllamaChatResponseDto.class)
-                    .block(Duration.ofSeconds(60));
+                    .body(OllamaChatResponseDto.class);
             return response != null
                     ? response.getMessage()
                     : new OllamaChatMessage(OllamaChatRole.assistant, "No message was produced");
         } catch (Exception e) {
-            return new OllamaChatMessage(OllamaChatRole.assistant, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Ollama error");
         }
     }
 

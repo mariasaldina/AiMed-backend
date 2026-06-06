@@ -1,7 +1,7 @@
 package com.aimed.aimed.user;
 
-import com.aimed.aimed.contact.ContactsDto;
 import com.aimed.aimed.contact.mapper.ContactMapper;
+import com.aimed.aimed.embedding.EmbeddingModelClient;
 import com.aimed.aimed.specialization.Specialization;
 import com.aimed.aimed.specialization.SpecializationRepository;
 import com.aimed.aimed.user.dto.*;
@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -33,6 +35,8 @@ public class UserService {
     private final PatientMapper patientMapper;
     private final DoctorMapper doctorMapper;
     private final ContactMapper contactMapper;
+
+    private final EmbeddingModelClient embeddingModelClient;
 
     public User getUser(Long userId) {
         return this.userRepository.findById(userId)
@@ -107,6 +111,22 @@ public class UserService {
         );
     }
 
+    private String generateEmbeddingString(DoctorProfile profile) {
+        return
+                """
+                Анкета врача.
+                Образование: %s
+                Профессиональное описание: %s
+                Опыт: %s лет клинической практики
+                Области экспертизы: %s
+                """.formatted(
+                        profile.getEducation(),
+                        profile.getDescription(),
+                        ChronoUnit.YEARS.between(profile.getPracticeStartDate(), LocalDate.now()),
+                        profile.getSpecializations().stream().map(Specialization::getName).toList()
+                );
+    }
+
     @Transactional
     public UserResponseDto fillInDoctorQuestionnaire(Long userId, UpdateDoctorDto doctorDto) {
         User user = userRepository.findById(userId)
@@ -126,6 +146,10 @@ public class UserService {
         doctorProfile.setLicense(doctorDto.license());
         doctorProfile.setLicenseIssueDate(doctorDto.licenseIssueDate());
         doctorProfile.setLicenseExpiryDate(doctorDto.licenseExpiryDate());
+
+        float[] profileEmbedding = embeddingModelClient
+                .getEmbedding(generateEmbeddingString(doctorProfile));
+        doctorProfile.setProfileEmbedding(profileEmbedding);
 
         Set<Specialization> specs = new HashSet<>(specializationRepository
                 .findAllById(doctorDto.specializationIds()));
