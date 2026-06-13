@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -23,7 +24,7 @@ public class DoctorSearchRepository {
             SearchCriteria searchCriteria
     ) {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-        parameterSource.addValue("embedding", contextEmbedding, Types.OTHER);
+        parameterSource.addValue("embedding", Arrays.toString(contextEmbedding), Types.OTHER);
 
         StringBuilder sql = new StringBuilder(
             """

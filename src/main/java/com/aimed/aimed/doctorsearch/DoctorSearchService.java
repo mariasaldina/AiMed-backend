@@ -37,7 +37,8 @@ public class DoctorSearchService {
         float[] contextEmbedding;
         if (chat.getLastUserMessageAt() != null
                 && chat.getLastDoctorSearchAt() != null
-                && chat.getLastUserMessageAt().isBefore(chat.getLastDoctorSearchAt())) {
+                && chat.getLastUserMessageAt().isBefore(chat.getLastDoctorSearchAt())
+        ) {
             contextEmbedding = chat.getContextEmbedding();
         } else {
             contextEmbedding = embeddingModelClient.getEmbedding(chat.getContext());

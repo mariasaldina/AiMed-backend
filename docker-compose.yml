@@ -1,0 +1,55 @@
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    user: postgres
+    env_file:
+      - ./.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aimed"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    volumes:
+      - .:/app
+      - ~/.m2:/root/.m2
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./.env
+
+  frontend:
+    build: ../frontend-next
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend-next:/app/
+      - /app/node_modules
+
+  tei:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    container_name: tei-gte
+    ports:
+      - "8081:80"
+    volumes:
+      - ./data:/data
+    environment:
+      MODEL_ID: Alibaba-NLP/gte-multilingual-base
+      HF_HOME: /data
+    command:
+      - --model-id
+      - Alibaba-NLP/gte-multilingual-base
+      - --max-batch-tokens
+      - "1024"
+
+volumes:
+  db_data:

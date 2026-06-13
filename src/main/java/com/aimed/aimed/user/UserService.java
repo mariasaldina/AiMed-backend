@@ -65,7 +65,7 @@ public class UserService {
     public UserResponseDto findById(Long id) {
         User user = this.userRepository
                 .findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"));
 
         UserProfileDto profile =
                 switch (user.getRole()) {

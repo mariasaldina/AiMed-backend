@@ -2,7 +2,6 @@ package com.aimed.aimed.chat;
 
 import com.aimed.aimed.specialization.SpecializationsDictionaryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.aimed.aimed.ollama.OllamaService;
@@ -27,16 +26,14 @@ public class ChatPromptManager {
     private final String updateContextPrompt;
     private final String assistantResponsePrompt;
     private final String useContextPrompt;
-    private final SpecializationsDictionaryService specializationsDictionaryService;
 
     public ChatPromptManager(
-            OllamaService ollamaService,
-            SpecializationsDictionaryService specializationsDictionaryService) {
+            OllamaService ollamaService
+    ) {
         this.ollamaService = ollamaService;
         this.updateContextPrompt = this.readPrompt("update_context.txt");
         this.assistantResponsePrompt = this.readPrompt("assistant_response.txt");
         this.useContextPrompt = this.readPrompt("use_context.txt");
-        this.specializationsDictionaryService = specializationsDictionaryService;
     }
 
     public String readPrompt(String promptFileName) {
