@@ -39,7 +39,7 @@ public class DoctorSearchService {
     private final SpecializationsDictionaryService specializationsDictionaryService;
 
     private double calculateScore(DoctorWithSimilarity doctor) {
-        long experience = ChronoUnit.YEARS.between(LocalDate.now(), doctor.practiceStartDate());
+        long experience = ChronoUnit.YEARS.between(doctor.practiceStartDate(), LocalDate.now());
         double experienceScore = Math.min(1.0, experience / 10.0);
         double profileCompleteness =
                 (isNotBlank(doctor.education()) ? 0.5 : 0.0)
@@ -86,7 +86,7 @@ public class DoctorSearchService {
         );
 
         return doctors.stream()
-                .sorted(Comparator.comparing(this::calculateScore))
+                .sorted(Comparator.comparing(this::calculateScore).reversed())
                 .limit(5)
                 .map(d -> userService.getUser(d.userId()))
                 .toList();
