@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.aimed.aimed.specialization.Specialization;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -23,19 +24,13 @@ public class DoctorProfile {
             String address,
             String education,
             String description,
-            LocalDate practiceStartDate,
-            String license,
-            LocalDate licenseIssueDate,
-            LocalDate licenseExpiryDate
+            LocalDate practiceStartDate
     ) {
         this.userId = userId;
         this.address = address;
         this.education = education;
         this.description = description;
         this.practiceStartDate = practiceStartDate;
-        this.license = license;
-        this.licenseIssueDate = licenseIssueDate;
-        this.licenseExpiryDate = licenseExpiryDate;
     }
 
     @Id
@@ -51,9 +46,6 @@ public class DoctorProfile {
     private String education;
     private String description;
     private LocalDate practiceStartDate;
-    private String license;
-    private LocalDate licenseIssueDate;
-    private LocalDate licenseExpiryDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -63,7 +55,7 @@ public class DoctorProfile {
     )
     private Set<Specialization> specializations = new HashSet<>();
 
-    @Column(columnDefinition = "vector(768)")
     @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 768)
     private float[] profileEmbedding;
 }

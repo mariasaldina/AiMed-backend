@@ -9,12 +9,11 @@ import com.aimed.aimed.doctorsearch.DoctorSearchService;
 import com.aimed.aimed.message.MessageService;
 import com.aimed.aimed.message.dto.*;
 import com.aimed.aimed.message.entity.*;
+import com.aimed.aimed.message.enums.MessageType;
 import com.aimed.aimed.message.mapper.MessageMapper;
 import com.aimed.aimed.message.MessageRepository;
 import com.aimed.aimed.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.aimed.aimed.user.entity.DoctorProfile;
-import com.aimed.aimed.user.repository.DoctorProfileRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -22,9 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -32,8 +29,7 @@ import java.util.List;
 public class ChatService {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
-    private final ChatPromptManager chatPromptManager;
-    private final DoctorProfileRepository doctorProfileRepository;
+    private final ChatAiService chatAiService;
 
     private final MessageMapper messageMapper;
     private final ChatMapper chatMapper;
@@ -51,15 +47,21 @@ public class ChatService {
         Chat chat = getChat(chatId);
 
         Message userMessage = this.messageService.saveUserMessage(chat, content);
-        List<Message> messages = this.messageService.getNLastMessages(chatId, 8);
+        List<Message> messages = this.messageService.getNLastMessages(chatId, 10);
 
         Message assistantMessage = this.messageService.saveAssistantMessage(
                 chat,
-                this.chatPromptManager.getAssistantResponse(chat.getContext(), messages)
+                this.chatAiService.getAssistantResponse(chat.getContext(), messages)
         );
         messages.add(assistantMessage);
 
-        String newContext = chatPromptManager.updateContext(chat.getContext(), messages);
+        String newContext = chatAiService.updateContext(
+                chat.getContext(),
+                messages.stream()
+                        .filter(m -> m.getType() == MessageType.USER)
+                        .map(m -> m.getUserPayload().getContent())
+                        .toList()
+        );
         chatRepository.updateContextById(chatId, newContext);
 
         return new MessageResponseDto(

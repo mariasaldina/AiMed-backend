@@ -143,9 +143,6 @@ public class UserService {
         doctorProfile.setEducation(doctorDto.education());
         doctorProfile.setDescription(doctorDto.description());
         doctorProfile.setPracticeStartDate(doctorDto.practiceStartDate());
-        doctorProfile.setLicense(doctorDto.license());
-        doctorProfile.setLicenseIssueDate(doctorDto.licenseIssueDate());
-        doctorProfile.setLicenseExpiryDate(doctorDto.licenseExpiryDate());
 
         float[] profileEmbedding = embeddingModelClient
                 .getEmbedding(generateEmbeddingString(doctorProfile));

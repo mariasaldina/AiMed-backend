@@ -44,6 +44,9 @@ spring:
   security:
     clientUrl: http://localhost:3000
 
+  profiles:
+    active: dev
+
 ollama:
   url: ${OLLAMA_URL}
   default-model: ${OLLAMA_MODEL}
@@ -54,3 +57,9 @@ embedding:
   url: ${EMBEDDING_URL:http://tei:80}
 
 kind: Application
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

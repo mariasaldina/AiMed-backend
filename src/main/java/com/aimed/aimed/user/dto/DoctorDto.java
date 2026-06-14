@@ -8,8 +8,5 @@ public record DoctorDto(
         String education,
         String description,
         LocalDate practiceStartDate,
-        String license,
-        LocalDate licenseIssueDate,
-        LocalDate licenseExpiryDate,
         List<Long> specializationIds
 ) implements UserProfileDto {}

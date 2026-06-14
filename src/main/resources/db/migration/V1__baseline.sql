@@ -155,11 +155,6 @@ CREATE TABLE public.doctor_profile (
     education text,
     description text,
     practice_start_date date,
-    license text,
-    license_issue_date date,
-    license_expiry_date date,
-    CONSTRAINT doctor_profile_check CHECK ((license_expiry_date > license_issue_date)),
-    CONSTRAINT doctor_profile_license_issue_date_check CHECK ((license_issue_date <= CURRENT_DATE)),
     CONSTRAINT doctor_profile_practice_start_date_check CHECK ((practice_start_date <= CURRENT_DATE))
 );
 
@@ -419,14 +414,6 @@ ALTER TABLE ONLY public.assistant_message_payload
 
 ALTER TABLE ONLY public.chats
     ADD CONSTRAINT chats_pkey PRIMARY KEY (id);
-
-
---
--- Name: doctor_profile doctor_profile_license_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.doctor_profile
-    ADD CONSTRAINT doctor_profile_license_key UNIQUE (license);
 
 
 --

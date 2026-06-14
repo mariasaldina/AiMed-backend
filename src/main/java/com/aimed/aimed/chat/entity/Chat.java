@@ -3,6 +3,9 @@ package com.aimed.aimed.chat.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 
@@ -36,6 +39,7 @@ public class Chat {
     private OffsetDateTime lastUserMessageAt;
     private OffsetDateTime lastDoctorSearchAt;
 
-    @Column(columnDefinition = "vector(768)")
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 768)
     private float[] contextEmbedding;
 }

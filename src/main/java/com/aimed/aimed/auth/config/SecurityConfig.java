@@ -54,7 +54,7 @@ public class SecurityConfig {
             CorsConfigurationSource corsConfig
     ) throws Exception {
         http
-                .securityMatcher("/auth/**")
+                .securityMatcher("/auth/**", "/dev/**", "/error")
                 .cors(cors -> cors.configurationSource(corsConfig))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
